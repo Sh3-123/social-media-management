@@ -11,8 +11,26 @@ const analyticsRoutes = require('./src/routes/analyticsRoutes');
 
 const app = express();
 
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    'http://localhost:5173',
+    'http://localhost:3000'
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || '*',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        const isVercel = origin.endsWith('.vercel.app');
+        const isAllowed = allowedOrigins.includes(origin) || isVercel;
+
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(express.json());
