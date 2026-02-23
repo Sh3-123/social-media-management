@@ -46,15 +46,18 @@ const verifyEmail = async (req, res) => {
 
 const login = async (req, res) => {
     const { email, password } = req.body;
+    console.log(`Login attempt for email: ${email}`);
 
     try {
         const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
 
         if (result.rows.length === 0) {
+            console.log(`Login failed: User not found for ${email}`);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
         const user = result.rows[0];
+        console.log(`User found: ${user.email}, is_verified status in DB: ${user.is_verified}`);
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);

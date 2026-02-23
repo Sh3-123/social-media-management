@@ -42,7 +42,7 @@ function SignupPage() {
                 throw new Error(data.message || 'Signup failed');
             }
 
-            setSuccess('Account created! Please check your email to verify your account before logging in.');
+            setSuccess('Account created successfully! Redirecting to login...');
             setTimeout(() => navigate('/login'), 4000);
         } catch (err) {
             setError(err.message);
