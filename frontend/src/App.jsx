@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import PlatformSelection from './pages/PlatformSelection';
 import PlatformDashboard from './pages/PlatformDashboard';
+import PostDetailPage from './pages/PostDetailPage';
 
 function App() {
     return (
@@ -25,6 +26,7 @@ function App() {
                         <Route path="/dashboard" element={<DashboardHome />} />
                         <Route path="/dashboard/connect" element={<PlatformSelection />} />
                         <Route path="/dashboard/:platformId" element={<PlatformDashboard />} />
+                        <Route path="/dashboard/post/:id" element={<PostDetailPage />} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />

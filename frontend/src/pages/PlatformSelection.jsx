@@ -6,6 +6,8 @@ import { fetchWithAuth } from '../utils/api';
 function PlatformSelection() {
     const [connectedAccounts, setConnectedAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showThreadsModal, setShowThreadsModal] = useState(false);
+    const [threadsToken, setThreadsToken] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,26 +33,40 @@ function PlatformSelection() {
     };
 
     const handleConnect = async (platform) => {
-        // In a real app, this would redirect to OAuth
-        // For Phase 2, we simulate connection for demonstration
-        const mockData = {
-            platform: platform,
-            token: `mock_token_${Date.now()}`,
-            username: platform === 'threads' ? '@user_threads' : 'User Channel',
-            platform_user_id: `id_${Date.now()}`
-        };
+        if (platform === 'threads') {
+            setShowThreadsModal(true);
+            return;
+        }
 
+        // Mock YouTube connection
+        await submitConnection('youtube', `mock_yt_token_${Date.now()}`, 'YouTube Creator', `yt_${Date.now()}`);
+    };
+
+    const submitConnection = async (platform, token, username, platform_user_id) => {
         try {
             const res = await fetchWithAuth('/platforms/connect', {
                 method: 'POST',
-                body: JSON.stringify(mockData)
+                body: JSON.stringify({
+                    platform,
+                    token,
+                    username,
+                    platform_user_id
+                })
             });
             if (res.ok) {
                 fetchAccounts();
+                setShowThreadsModal(false);
+                setThreadsToken('');
             }
         } catch (err) {
             console.error('Connection failed:', err);
         }
+    };
+
+    const handleThreadsSubmit = (e) => {
+        e.preventDefault();
+        if (!threadsToken) return;
+        submitConnection('threads', threadsToken, '@threads_user', `threads_${Date.now()}`);
     };
 
     const handleDisconnect = async (platform) => {
@@ -73,7 +89,7 @@ function PlatformSelection() {
             icon: AtSign,
             color: 'text-white',
             bg: 'bg-[#121212]',
-            description: 'Connect your Threads account to manage text-based posts and engage with your community.'
+            description: 'Connect your Threads account using a Long-Lived Access Token to manage posts and track analytics.'
         },
         {
             id: 'youtube',
@@ -155,6 +171,43 @@ function PlatformSelection() {
                     );
                 })}
             </div>
+
+            {/* Threads Token Modal */}
+            {showThreadsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <AtSign className="text-white" size={24} /> Connect Threads
+                            </h3>
+                            <button onClick={() => setShowThreadsModal(false)} className="text-slate-400 hover:text-white">
+                                <XCircle size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleThreadsSubmit}>
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-slate-300 mb-2">Long-Lived Access Token</label>
+                                <textarea
+                                    value={threadsToken}
+                                    onChange={(e) => setThreadsToken(e.target.value)}
+                                    placeholder="Paste your Threads access token here..."
+                                    className="w-full h-32 bg-[#1a1a1a] border border-white/10 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-500 transition-colors resize-none"
+                                    required
+                                />
+                                <p className="mt-2 text-xs text-slate-500">
+                                    You can get this token from the Meta for Developers portal after setting up a Threads App.
+                                </p>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                            >
+                                Verify & Connect Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
