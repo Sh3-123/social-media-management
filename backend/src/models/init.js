@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 const createTables = async () => {
-    const usersTable = `
+  const usersTable = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
@@ -14,17 +14,34 @@ const createTables = async () => {
     );
   `;
 
-    await db.query(usersTable);
+  const connectedAccountsTable = `
+    CREATE TABLE IF NOT EXISTS connected_accounts (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      platform VARCHAR(50) NOT NULL, -- e.g., 'threads', 'twitter'
+      access_token TEXT NOT NULL,
+      refresh_token TEXT,
+      token_expires_at TIMESTAMP,
+      platform_user_id VARCHAR(255),
+      platform_username VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, platform)
+    );
+  `;
+
+  await db.query(usersTable);
+  await db.query(connectedAccountsTable);
 };
 
 const initDB = async () => {
-    try {
-        // Check if db exists logic or assume it exists based on config
-        await createTables();
-    } catch (error) {
-        console.error('Database initialization error:', error);
-        throw error;
-    }
+  try {
+    // Check if db exists logic or assume it exists based on config
+    await createTables();
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    throw error;
+  }
 };
 
 module.exports = { initDB };
