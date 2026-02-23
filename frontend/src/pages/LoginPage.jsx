@@ -26,7 +26,8 @@ function LoginPage() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || 'Login failed');
+                const errorMessage = data.error ? `${data.message}: ${data.error}` : (data.message || 'Login failed');
+                throw new Error(errorMessage);
             }
 
             login(data.token, data.user);

@@ -36,7 +36,11 @@ const signup = async (req, res) => {
         });
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ message: 'Server error during registration' });
+        res.status(500).json({
+            message: 'Server error during registration',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
@@ -72,6 +76,10 @@ const login = async (req, res) => {
             email: user.email
         };
 
+        if (!process.env.JWT_SECRET) {
+            return res.status(500).json({ message: 'JWT_SECRET is missing on server' });
+        }
+
         jwt.sign(
             payload,
             process.env.JWT_SECRET,
@@ -87,7 +95,10 @@ const login = async (req, res) => {
         );
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ message: 'Server error during login' });
+        res.status(500).json({
+            message: 'Server error during login',
+            error: error.message
+        });
     }
 };
 
