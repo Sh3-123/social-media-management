@@ -156,10 +156,30 @@ function PlatformDashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {[
-                    { label: 'Followers', value: analytics?.current?.follower_count.toLocaleString() || '0', trend: growth >= 0 ? `+${growth}` : growth, icon: Users },
-                    { label: 'Total Engagement', value: (analytics?.summary?.total_likes + analytics?.summary?.total_comments).toLocaleString() || '0', trend: 'Lifetime', icon: Activity },
-                    { label: 'Total Views', value: analytics?.summary?.total_views.toLocaleString() || '0', trend: 'Total', icon: Eye },
-                    { label: 'Best Performing', value: analytics?.bestPost?.likes_count.toLocaleString() || 'N/A', trend: 'Likes', icon: Heart },
+                    {
+                        label: 'Followers',
+                        value: (analytics?.current?.follower_count ?? 0).toLocaleString(),
+                        trend: growth >= 0 ? `+${growth}` : growth,
+                        icon: Users
+                    },
+                    {
+                        label: 'Total Engagement',
+                        value: (Number(analytics?.summary?.total_likes || 0) + Number(analytics?.summary?.total_comments || 0)).toLocaleString(),
+                        trend: 'Lifetime',
+                        icon: Activity
+                    },
+                    {
+                        label: 'Total Views',
+                        value: Number(analytics?.summary?.total_views || 0).toLocaleString(),
+                        trend: 'Total',
+                        icon: Eye
+                    },
+                    {
+                        label: 'Best Performing',
+                        value: analytics?.bestPost ? Number(analytics?.bestPost?.likes_count || 0).toLocaleString() : 'N/A',
+                        trend: 'Likes',
+                        icon: Heart
+                    },
                 ].map((stat, i) => (
                     <div key={i} className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all">
                         <div className="flex justify-between items-start mb-4">
