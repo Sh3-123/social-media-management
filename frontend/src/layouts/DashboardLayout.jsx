@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     Home, BarChart2, MessageSquare,
-    Settings, LogOut, Menu, X, Bell
+    Settings, LogOut, Menu, X, Bell,
+    PlusCircle, AtSign, Youtube
 } from 'lucide-react';
+import { fetchWithAuth } from '../utils/api';
 
 function DashboardLayout() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [connectedAccounts, setConnectedAccounts] = useState([]);
 
     const handleLogout = () => {
         logout();
         navigate('/login');
     };
 
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            try {
+                const res = await fetchWithAuth('/platforms/accounts');
+                if (res.ok) {
+                    const data = await res.json();
+                    setConnectedAccounts(data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch accounts:', err);
+            }
+        };
+        fetchAccounts();
+    }, [location.pathname]);
+
     const navItems = [
         { icon: Home, label: 'Dashboard', path: '/dashboard' },
-        { icon: BarChart2, label: 'Analytics', path: '/analytics' },
-        { icon: MessageSquare, label: 'Messages', path: '/messages' },
-        { icon: Settings, label: 'Settings', path: '/settings' },
+        { icon: PlusCircle, label: 'Connect Platforms', path: '/dashboard/connect' },
+        { icon: BarChart2, label: 'Global Analytics', path: '/analytics' },
     ];
+
+    const platformIcons = {
+        threads: AtSign,
+        youtube: Youtube
+    };
 
     return (
         <div className="flex h-screen bg-[#0a0a0a] overflow-hidden text-slate-100">
@@ -74,6 +96,30 @@ function DashboardLayout() {
                             </Link>
                         );
                     })}
+
+                    {connectedAccounts.length > 0 && (
+                        <div className="pt-6 pb-2">
+                            <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Connected Platforms</p>
+                            {connectedAccounts.map((account) => {
+                                const Icon = platformIcons[account.platform.toLowerCase()] || MessageSquare;
+                                const path = `/dashboard/${account.platform.toLowerCase()}`;
+                                const isActive = location.pathname === path;
+                                return (
+                                    <Link
+                                        key={account.platform}
+                                        to={path}
+                                        className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
+                                            ? 'bg-white/10 text-white'
+                                            : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                            }`}
+                                    >
+                                        <Icon className={`h-5 w-5 mr-3 ${isActive ? (account.platform === 'youtube' ? 'text-red-500' : 'text-white') : 'text-slate-500'}`} />
+                                        {account.platform.charAt(0).toUpperCase() + account.platform.slice(1)}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
                 </nav>
             </aside>
 

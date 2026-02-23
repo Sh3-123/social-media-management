@@ -4,3 +4,4 @@ backend/.env
 config.md
 dist/
 .DS_Store
+.env.vercel

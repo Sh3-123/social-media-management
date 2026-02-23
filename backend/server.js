@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const { initDB } = require('./src/models/init');
 const authRoutes = require('./src/routes/authRoutes');
+const platformRoutes = require('./src/routes/platformRoutes');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/platforms', platformRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
