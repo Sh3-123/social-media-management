@@ -68,7 +68,17 @@ const connectPlatform = async (req, res) => {
         });
     } catch (error) {
         console.error('Connect platform error:', error);
-        res.status(500).json({ message: 'Server error connecting platform' });
+
+        let statusCode = 500;
+        let message = 'Server error connecting platform';
+
+        if (error.message.includes('ENCRYPTION_KEY')) {
+            message = 'Security configuration error: Encryption key missing on server.';
+        } else if (error.code === '23505') { // Unique constraint
+            message = 'Account already connected.';
+        }
+
+        res.status(statusCode).json({ message, details: error.message });
     }
 };
 
