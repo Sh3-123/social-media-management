@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Youtube, AtSign, Plus, CheckCircle2, ChevronRight, XCircle } from 'lucide-react';
+import { Youtube, AtSign, Plus, CheckCircle2, ChevronRight, XCircle, RefreshCw } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 
 function PlatformSelection() {
@@ -8,6 +8,7 @@ function PlatformSelection() {
     const [loading, setLoading] = useState(true);
     const [showThreadsModal, setShowThreadsModal] = useState(false);
     const [threadsToken, setThreadsToken] = useState('');
+    const [connecting, setConnecting] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -43,30 +44,52 @@ function PlatformSelection() {
     };
 
     const submitConnection = async (platform, token, username, platform_user_id) => {
+        setConnecting(true);
         try {
+            const trimmedToken = token.trim();
+            if (!trimmedToken) {
+                alert('Token cannot be empty');
+                setConnecting(false);
+                return;
+            }
+
             const res = await fetchWithAuth('/platforms/connect', {
                 method: 'POST',
                 body: JSON.stringify({
                     platform,
-                    token,
+                    token: trimmedToken,
                     username,
                     platform_user_id
                 })
             });
+
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = { message: 'Server returned an invalid response' };
+            }
+
             if (res.ok) {
-                fetchAccounts();
+                await fetchAccounts();
                 setShowThreadsModal(false);
                 setThreadsToken('');
+                alert(`${platform} connected successfully!`);
+            } else {
+                alert(data.message || 'Connection failed. Please check your token.');
             }
         } catch (err) {
             console.error('Connection failed:', err);
+            alert('An error occurred while connecting. Please try again.');
+        } finally {
+            setConnecting(false);
         }
     };
 
-    const handleThreadsSubmit = (e) => {
+    const handleThreadsSubmit = async (e) => {
         e.preventDefault();
-        if (!threadsToken) return;
-        submitConnection('threads', threadsToken, '@threads_user', `threads_${Date.now()}`);
+        if (!threadsToken || connecting) return;
+        await submitConnection('threads', threadsToken, '@threads_user', `threads_${Date.now()}`);
     };
 
     const handleDisconnect = async (platform) => {
@@ -200,9 +223,17 @@ function PlatformSelection() {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                                disabled={connecting}
+                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Verify & Connect Account
+                                {connecting ? (
+                                    <>
+                                        <RefreshCw className="animate-spin" size={20} />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    'Verify & Connect Account'
+                                )}
                             </button>
                         </form>
                     </div>
