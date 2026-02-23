@@ -1,8 +1,10 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 const isProduction = process.env.NODE_ENV === 'production';
-const isAiven = process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud');
+const isAiven = (process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud')) ||
+    (process.env.POSTGRES_URL && process.env.POSTGRES_URL.includes('aivencloud'));
 
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
