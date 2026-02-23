@@ -1,10 +1,5 @@
 const { Pool } = require('pg');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') });
-
-const isProduction = process.env.NODE_ENV === 'production';
-const isAiven = (process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud')) ||
-    (process.env.POSTGRES_URL && process.env.POSTGRES_URL.includes('aivencloud'));
+require('dotenv').config();
 
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
@@ -13,7 +8,10 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-    ssl: (isProduction || isAiven) ? { rejectUnauthorized: false } : false
+    // For Vercel and Aiven, we must disable certificate verification
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 module.exports = {
