@@ -17,15 +17,25 @@ function PostDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [post, setPost] = useState(null);
+    const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchPost = async () => {
+        const fetchPostData = async () => {
             try {
-                const res = await fetchWithAuth(`/posts/${id}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setPost(data);
+                setLoading(true);
+                const postRes = await fetchWithAuth(`/posts/${id}`);
+
+                if (postRes.ok) {
+                    const postData = await postRes.json();
+                    setPost(postData);
+
+                    // Now fetch comments using the PLATFORM post ID as the parent
+                    const commRes = await fetchWithAuth(`/posts?platform=threads&parent=${postData.platform_post_id}`);
+                    if (commRes.ok) {
+                        const commData = await commRes.json();
+                        setComments(commData);
+                    }
                 } else {
                     navigate('/dashboard');
                 }
@@ -37,7 +47,7 @@ function PostDetailPage() {
             }
         };
 
-        fetchPost();
+        fetchPostData();
     }, [id, navigate]);
 
     if (loading) {
@@ -120,7 +130,47 @@ function PostDetailPage() {
                 </div>
             </div>
 
-            <div className="mt-8 flex justify-center">
+            {/* Comments Section */}
+            <div className="mt-12">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                    <MessageCircle className="text-blue-500" size={24} />
+                    Public Replies <span className="text-slate-500 text-sm font-medium">({comments.length})</span>
+                </h3>
+
+                <div className="space-y-4">
+                    {comments.length === 0 ? (
+                        <div className="bg-[#121212] border border-white/5 border-dashed rounded-2xl p-8 text-center">
+                            <p className="text-slate-500 font-medium italic">No public replies detected for this thread.</p>
+                        </div>
+                    ) : (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all group">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-xs ring-1 ring-blue-500/30">
+                                            {comment.username?.[0]?.toUpperCase() || 'U'}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-white">@{comment.username}</p>
+                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                                                {new Date(comment.published_at).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Heart size={14} className="text-slate-600 hover:text-red-500 cursor-pointer transition-colors" />
+                                    </div>
+                                </div>
+                                <p className="text-white text-md leading-relaxed">
+                                    {comment.content}
+                                </p>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <div className="mt-12 flex justify-center">
                 <button
                     onClick={() => navigate(-1)}
                     className="px-8 py-3 bg-white text-black font-black rounded-2xl hover:bg-slate-200 transition-all active:scale-95"

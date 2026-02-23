@@ -3,7 +3,7 @@ const { decrypt } = require('../utils/crypto');
 const axios = require('axios');
 
 const getPosts = async (req, res) => {
-    const { platform, type } = req.query;
+    const { platform, type, parent } = req.query;
     const userId = req.user.id;
 
     try {
@@ -11,7 +11,7 @@ const getPosts = async (req, res) => {
         let params = [userId];
 
         if (platform) {
-            query += ' AND platform = $2';
+            query += ` AND platform = $${params.length + 1}`;
             params.push(platform.toLowerCase());
         }
 
@@ -19,6 +19,12 @@ const getPosts = async (req, res) => {
             // type could be 'POST' or 'REPLY'
             query += ` AND post_type = $${params.length + 1}`;
             params.push(type);
+        }
+
+        if (parent) {
+            // parent is the platform_post_id of the parent thread
+            query += ` AND parent_post_id = $${params.length + 1}`;
+            params.push(parent);
         }
 
         query += ' ORDER BY published_at DESC';
@@ -66,7 +72,7 @@ const syncPosts = async (req, res) => {
         const { access_token: encryptedToken, platform_user_id: threadsUserId } = accountResult.rows[0];
         const accessToken = decrypt(encryptedToken);
 
-        // 2. Fetch Threads (Posts)
+        // 3. Fetch Threads (Main Posts)
         const threadsRes = await axios.get(`https://graph.threads.net/v1.0/${threadsUserId}/threads`, {
             params: {
                 fields: 'id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,is_quote_post',
@@ -76,17 +82,6 @@ const syncPosts = async (req, res) => {
 
         const threads = threadsRes.data.data || [];
         console.log(`Fetched ${threads.length} threads for syncing`);
-
-        // 3. Fetch Replies (Comments)
-        const repliesRes = await axios.get(`https://graph.threads.net/v1.0/${threadsUserId}/replies`, {
-            params: {
-                fields: 'id,text,username,permalink,timestamp,media_product_type,media_type,media_url,shortcode,thumbnail_url,is_quote_post,has_replies',
-                access_token: accessToken
-            }
-        });
-
-        const replies = repliesRes.data.data || [];
-        console.log(`Fetched ${replies.length} replies for syncing`);
 
         // 4. Upsert Threads into DB
         for (const thread of threads) {
@@ -100,10 +95,53 @@ const syncPosts = async (req, res) => {
                  updated_at = CURRENT_TIMESTAMP`,
                 [userId, platform.toLowerCase(), thread.id, thread.text, thread.media_url || null, thread.timestamp, 'POST']
             );
+
+            // Fetch replies for THIS specific thread (Comments)
+            try {
+                const repliesRes = await axios.get(`https://graph.threads.net/v1.0/${thread.id}/replies`, {
+                    params: {
+                        fields: 'id,text,username,permalink,timestamp,media_product_type,media_type,media_url,shortcode,thumbnail_url,is_quote_post,has_replies',
+                        access_token: accessToken
+                    }
+                });
+
+                const replies = repliesRes.data.data || [];
+                console.log(`Fetched ${replies.length} replies for thread ${thread.id}`);
+
+                for (const reply of replies) {
+                    await db.query(
+                        `INSERT INTO posts (user_id, platform, platform_post_id, parent_post_id, content, media_url, published_at, post_type)
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                         ON CONFLICT (user_id, platform, platform_post_id) DO UPDATE SET
+                         content = EXCLUDED.content,
+                         media_url = EXCLUDED.media_url,
+                         published_at = EXCLUDED.published_at,
+                         updated_at = CURRENT_TIMESTAMP`,
+                        [userId, platform.toLowerCase(), reply.id, thread.id, reply.text, reply.media_url || null, reply.timestamp, 'REPLY']
+                    );
+                }
+
+                // Update counts for the thread
+                await db.query(
+                    'UPDATE posts SET comments_count = $1 WHERE platform_post_id = $2 AND user_id = $3',
+                    [replies.length, thread.id, userId]
+                );
+
+            } catch (err) {
+                console.warn(`Could not fetch replies for thread ${thread.id}:`, err.message);
+            }
         }
 
-        // 5. Upsert Replies into DB
-        for (const reply of replies) {
+        // 5. Fetch YOUR OWN standalone replies (for the Replies tab)
+        const myRepliesRes = await axios.get(`https://graph.threads.net/v1.0/${threadsUserId}/replies`, {
+            params: {
+                fields: 'id,text,username,permalink,timestamp,media_product_type,media_type,media_url,shortcode,thumbnail_url,is_quote_post,has_replies',
+                access_token: accessToken
+            }
+        });
+
+        const myReplies = myRepliesRes.data.data || [];
+        for (const reply of myReplies) {
             await db.query(
                 `INSERT INTO posts (user_id, platform, platform_post_id, content, media_url, published_at, post_type)
                  VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -118,7 +156,10 @@ const syncPosts = async (req, res) => {
 
         res.json({
             message: `Successfully synced ${platform} content`,
-            stats: { posts: threads.length, comments: replies.length }
+            stats: {
+                posts: threads.length,
+                standalone_replies: myReplies.length
+            }
         });
     } catch (error) {
         console.error('Sync posts error:', error.response?.data || error.message);
