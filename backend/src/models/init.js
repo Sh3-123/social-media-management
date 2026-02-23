@@ -41,8 +41,10 @@ const createTables = async () => {
       likes_count INTEGER DEFAULT 0,
       comments_count INTEGER DEFAULT 0,
       views_count INTEGER DEFAULT 0,
+      post_type VARCHAR(20) DEFAULT 'POST', -- 'POST' or 'REPLY'
       published_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, platform, platform_post_id)
     );
   `;
@@ -61,6 +63,14 @@ const createTables = async () => {
   await db.query(connectedAccountsTable);
   await db.query(postsTable);
   await db.query(analyticsHistoryTable);
+
+  // Migration for existing table
+  try {
+    await db.query('ALTER TABLE posts ADD COLUMN IF NOT EXISTS post_type VARCHAR(20) DEFAULT \'POST\'');
+    await db.query('ALTER TABLE posts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+  } catch (err) {
+    console.log('Migration subtle error (likely columns already exist):', err.message);
+  }
 };
 
 const initDB = async () => {

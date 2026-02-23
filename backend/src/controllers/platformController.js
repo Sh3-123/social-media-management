@@ -1,5 +1,6 @@
 const db = require('../config/db');
-const { encrypt } = require('../utils/crypto');
+const { encrypt, decrypt } = require('../utils/crypto');
+const axios = require('axios');
 
 const getConnectedAccounts = async (req, res) => {
     try {
@@ -15,13 +16,37 @@ const getConnectedAccounts = async (req, res) => {
 };
 
 const connectPlatform = async (req, res) => {
-    const { platform, token, username, platform_user_id } = req.body;
+    let { platform, token, username, platform_user_id } = req.body;
 
     if (!platform || !token) {
         return res.status(400).json({ message: 'Platform and token are required' });
     }
 
     try {
+        // Verification for Threads
+        if (platform.toLowerCase() === 'threads') {
+            try {
+                const response = await axios.get('https://graph.threads.net/v1.0/me', {
+                    params: {
+                        fields: 'id,username,name',
+                        access_token: token
+                    }
+                });
+
+                if (response.data && response.data.id) {
+                    platform_user_id = response.data.id;
+                    username = response.data.username || response.data.name;
+                    console.log(`Verified Threads account: ${username} (${platform_user_id})`);
+                }
+            } catch (err) {
+                console.error('Threads verification failed:', err.response?.data || err.message);
+                return res.status(401).json({
+                    message: 'Invalid Threads access token. Please ensure it is a valid Long-Lived Access Token.',
+                    details: err.response?.data?.error?.message
+                });
+            }
+        }
+
         const encryptedToken = encrypt(token);
 
         // Use upsert logic
@@ -34,10 +59,13 @@ const connectPlatform = async (req, res) => {
                 platform_username = EXCLUDED.platform_username,
                 platform_user_id = EXCLUDED.platform_user_id,
                 updated_at = EXCLUDED.updated_at`,
-            [req.user.id, platform, encryptedToken, username, platform_user_id]
+            [req.user.id, platform.toLowerCase(), encryptedToken, username, platform_user_id]
         );
 
-        res.json({ message: `${platform} connected successfully` });
+        res.json({
+            message: `${platform} connected successfully`,
+            account: { platform, username, platform_user_id }
+        });
     } catch (error) {
         console.error('Connect platform error:', error);
         res.status(500).json({ message: 'Server error connecting platform' });

@@ -25,6 +25,7 @@ function PlatformDashboard() {
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
+    const [activeTab, setActiveTab] = useState('POST'); // 'POST' or 'REPLY'
 
     useEffect(() => {
         const loadDashboard = async () => {
@@ -43,7 +44,7 @@ function PlatformDashboard() {
 
                     // Fetch data
                     await Promise.all([
-                        fetchPosts(),
+                        fetchPosts(activeTab),
                         fetchAnalytics()
                     ]);
                 }
@@ -55,10 +56,10 @@ function PlatformDashboard() {
         };
 
         loadDashboard();
-    }, [platformId, navigate]);
+    }, [platformId, navigate, activeTab]);
 
-    const fetchPosts = async () => {
-        const res = await fetchWithAuth(`/posts?platform=${platformId}`);
+    const fetchPosts = async (type) => {
+        const res = await fetchWithAuth(`/posts?platform=${platformId}&type=${type}`);
         if (res.ok) {
             const data = await res.json();
             setPosts(data);
@@ -80,7 +81,7 @@ function PlatformDashboard() {
                 fetchWithAuth('/posts/sync', { method: 'POST', body: JSON.stringify({ platform: platformId }) }),
                 fetchWithAuth('/analytics/sync', { method: 'POST', body: JSON.stringify({ platform: platformId }) })
             ]);
-            await Promise.all([fetchPosts(), fetchAnalytics()]);
+            await Promise.all([fetchPosts(activeTab), fetchAnalytics()]);
         } catch (err) {
             console.error('Sync failed:', err);
         } finally {
@@ -200,19 +201,24 @@ function PlatformDashboard() {
                         </div>
                     </div>
 
-                    {/* Posts Section */}
+                    {/* Content Section */}
                     <div className="bg-[#121212] border border-white/10 rounded-2xl p-8">
                         <div className="flex justify-between items-center mb-8">
-                            <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                <Send className="text-purple-500" size={24} /> Recent Content
-                            </h3>
+                            <div className="flex items-center gap-6">
+                                <h3 className={`text-xl font-bold cursor-pointer transition-colors ${activeTab === 'POST' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`} onClick={() => setActiveTab('POST')}>
+                                    Threads
+                                </h3>
+                                <h3 className={`text-xl font-bold cursor-pointer transition-colors ${activeTab === 'REPLY' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`} onClick={() => setActiveTab('REPLY')}>
+                                    Replies
+                                </h3>
+                            </div>
                             <Link to="/dashboard/posts" className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">View All</Link>
                         </div>
 
                         <div className="space-y-4">
                             {posts.length === 0 ? (
                                 <div className="text-center py-12 bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
-                                    <p className="text-slate-500 mb-4">No posts synced yet.</p>
+                                    <p className="text-slate-500 mb-4">No {activeTab.toLowerCase()}s synced yet.</p>
                                     <button onClick={handleSync} className="text-sm font-bold text-blue-500 border border-blue-500/30 px-4 py-2 rounded-lg hover:bg-blue-500/10 active:scale-95 transition-all">Sync Now</button>
                                 </div>
                             ) : posts.map((post) => (
@@ -221,22 +227,28 @@ function PlatformDashboard() {
                                     to={`/dashboard/post/${post.id}`}
                                     className="flex gap-6 p-5 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/10 transition-all group"
                                 >
-                                    <div className="w-20 h-20 bg-[#1a1a1a] rounded-xl shrink-0 border border-white/5 flex items-center justify-center overflow-hidden">
+                                    <div className="w-16 h-16 bg-[#1a1a1a] rounded-xl shrink-0 border border-white/5 flex items-center justify-center overflow-hidden">
                                         {post.media_url ? (
                                             <img src={post.media_url} alt="post" className="w-full h-full object-cover" />
                                         ) : (
-                                            <Icon className="text-slate-800" size={32} />
+                                            <Icon className="text-slate-800" size={24} />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start mb-2">
-                                            <p className="text-white font-semibold text-lg line-clamp-1 group-hover:text-blue-400 transition-colors">{post.content || 'Untitled Post'}</p>
+                                            <div className="flex flex-col">
+                                                {post.post_type === 'REPLY' && (
+                                                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Reply</span>
+                                                )}
+                                                <p className="text-white font-semibold text-lg line-clamp-1 group-hover:text-blue-400 transition-colors">{post.content || 'Untitled Post'}</p>
+                                            </div>
                                             <span className="text-[10px] font-bold text-slate-500 whitespace-nowrap uppercase tracking-tighter ml-4">{new Date(post.published_at).toLocaleDateString()}</span>
                                         </div>
                                         <div className="flex gap-6">
                                             <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><Heart size={14} className="text-red-500" /> {post.likes_count}</span>
-                                            <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><MessageCircle size={14} className="text-blue-400" /> {post.comments_count}</span>
-                                            <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><Eye size={14} className="text-slate-500" /> {post.views_count}</span>
+                                            {post.post_type === 'POST' && (
+                                                <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><MessageCircle size={14} className="text-blue-400" /> {post.comments_count}</span>
+                                            )}
                                         </div>
                                     </div>
                                 </Link>
