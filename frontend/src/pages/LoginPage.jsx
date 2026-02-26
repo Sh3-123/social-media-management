@@ -22,8 +22,9 @@ function LoginPage() {
                 method: 'POST',
                 body: JSON.stringify({ email, password }),
             });
-
-            const data = await res.json();
+            const contentType = res.headers.get('content-type') || '';
+            const isJson = contentType.includes('application/json');
+            const data = isJson ? await res.json() : { message: await res.text() };
 
             if (!res.ok) {
                 const errorMessage = data.error ? `${data.message}: ${data.error}` : (data.message || 'Login failed');
