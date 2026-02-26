@@ -91,8 +91,8 @@ const SentimentCard = ({ sentimentData, loading, error, title = "Post Sentiment"
                 </div>
 
                 <div className="space-y-3 mt-6">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Emotion Breakdown</p>
-                    {breakdown?.slice(0, 3).map((item, idx) => (
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Emotion Breakdown (Top 6)</p>
+                    {breakdown?.filter(item => !['neutral', 'positive', 'negative'].includes(item.label.toLowerCase())).slice(0, 6).map((item, idx) => (
                         <div key={idx}>
                             <div className="flex justify-between text-xs mb-1">
                                 <span className="text-slate-300 capitalize font-medium">{item.label}</span>

@@ -10,19 +10,23 @@ const PublicRepliesSentiment = ({ repliesSentimentData, loading }) => {
     let positive = 0;
     let negative = 0;
     let neutral = 0;
-    const emotionCounts = {};
+
+    // Track cumulative scores for each emotion across all replies
+    const emotionCumulativeScores = {};
 
     repliesSentimentData.forEach(item => {
         if (!item) return;
 
-        // Count sentiment
+        // Count overall sentiment
         if (item.sentiment === 'positive') positive++;
         else if (item.sentiment === 'negative') negative++;
         else neutral++;
 
-        // Count emotions
-        if (item.emotion) {
-            emotionCounts[item.emotion] = (emotionCounts[item.emotion] || 0) + 1;
+        // Add up all emotion scores from the breakdown
+        if (item.breakdown && Array.isArray(item.breakdown)) {
+            item.breakdown.forEach(emotionItem => {
+                emotionCumulativeScores[emotionItem.label] = (emotionCumulativeScores[emotionItem.label] || 0) + emotionItem.score;
+            });
         }
     });
 
@@ -30,10 +34,15 @@ const PublicRepliesSentiment = ({ repliesSentimentData, loading }) => {
     const negPct = Math.round((negative / total) * 100) || 0;
     const neuPct = Math.round((neutral / total) * 100) || 0;
 
-    // Sort emotions by count
-    const topEmotions = Object.entries(emotionCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4);
+    // Calculate average scores and sort them descending
+    const avgEmotions = Object.entries(emotionCumulativeScores)
+        .filter(([label]) => !['neutral', 'positive', 'negative'].includes(label.toLowerCase()))
+        .map(([label, totalScore]) => ({
+            label,
+            avgScore: totalScore / total
+        }))
+        .sort((a, b) => b.avgScore - a.avgScore)
+        .slice(0, 6); // Take top 6 average emotions
 
     return (
         <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 relative overflow-hidden mb-6">
@@ -81,14 +90,22 @@ const PublicRepliesSentiment = ({ repliesSentimentData, loading }) => {
                         </div>
                     </div>
 
-                    {/* Top Emotions */}
+                    {/* Top Emotions (Averaged) */}
                     <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Top Emotions</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            {topEmotions.map(([emotion, count], idx) => (
-                                <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-3 flex flex-col items-center justify-center text-center">
-                                    <span className="text-lg font-black text-white">{Math.round((count / total) * 100)}%</span>
-                                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mt-1">{emotion}</span>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Top Average Emotions</p>
+                        <div className="space-y-3">
+                            {avgEmotions.map((emotion, idx) => (
+                                <div key={idx}>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="text-slate-300 capitalize font-medium">{emotion.label}</span>
+                                        <span className="text-slate-400 font-bold">{Math.round(emotion.avgScore * 100)}%</span>
+                                    </div>
+                                    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                                        <div
+                                            className="h-1.5 rounded-full bg-blue-400"
+                                            style={{ width: `${Math.max(emotion.avgScore * 100, 1)}%` }}
+                                        />
+                                    </div>
                                 </div>
                             ))}
                         </div>
