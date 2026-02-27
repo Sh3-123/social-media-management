@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import PlatformSelection from './pages/PlatformSelection';
 import PlatformDashboard from './pages/PlatformDashboard';
 import PostDetailPage from './pages/PostDetailPage';
+import RecommendationPage from './pages/RecommendationPage';
 
 function App() {
     return (
@@ -21,12 +22,12 @@ function App() {
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/verify/:token" element={<VerifyEmailPage />} />
 
-                    {/* Protected Dashboard Routes */}
                     <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
                         <Route path="/dashboard" element={<DashboardHome />} />
                         <Route path="/dashboard/connect" element={<PlatformSelection />} />
                         <Route path="/dashboard/:platformId" element={<PlatformDashboard />} />
                         <Route path="/dashboard/post/:id" element={<PostDetailPage />} />
+                        <Route path="/recommendation" element={<RecommendationPage />} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />

@@ -10,6 +10,7 @@ const platformRoutes = require('./src/routes/platformRoutes');
 const postRoutes = require('./src/routes/postRoutes');
 const analyticsRoutes = require('./src/routes/analyticsRoutes');
 const intelligenceRoutes = require('./src/routes/intelligenceRoutes');
+const recommendationRoutes = require('./src/routes/recommendationRoutes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/platforms', platformRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/intelligence', intelligenceRoutes);
+app.use('/api/recommendation', recommendationRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
