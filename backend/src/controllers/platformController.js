@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const { encrypt, decrypt } = require('../utils/crypto');
 const axios = require('axios');
+const youtubeService = require('../services/youtubeService');
 
 const getConnectedAccounts = async (req, res) => {
     try {
@@ -45,9 +46,29 @@ const connectPlatform = async (req, res) => {
                     details: err.response?.data?.error?.message
                 });
             }
+        } else if (platform.toLowerCase() === 'youtube') {
+            // For YouTube, 'token' in the request body from frontend will actually be the channelId
+            // since we don't use OAuth, we just rely on API key in backend.
+            try {
+                const channelDetails = await youtubeService.getChannelDetails(token);
+                platform_user_id = channelDetails.id;
+                username = channelDetails.title;
+                token = 'dummy_token_not_used'; // We use backend API key
+                console.log(`Verified YouTube account: ${username} (${platform_user_id})`);
+            } catch (err) {
+                console.error('YouTube verification failed:', err.message);
+                return res.status(400).json({
+                    message: 'Invalid YouTube channel ID or channel not found.',
+                    details: err.message
+                });
+            }
         }
 
         const encryptedToken = encrypt(token);
+
+        // Wipe old cached posts and analytics so the dashboard doesn't mix channels
+        await db.query('DELETE FROM posts WHERE user_id = $1 AND platform = $2', [req.user.id, platform.toLowerCase()]);
+        await db.query('DELETE FROM analytics_history WHERE user_id = $1 AND platform = $2', [req.user.id, platform.toLowerCase()]);
 
         // Use upsert logic
         await db.query(
@@ -97,8 +118,24 @@ const disconnectPlatform = async (req, res) => {
     }
 };
 
+const searchYouTubeChannel = async (req, res) => {
+    const { query } = req.query;
+    if (!query) {
+        return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    try {
+        const results = await youtubeService.searchChannels(query);
+        res.json(results);
+    } catch (error) {
+        console.error('Search YouTube channels error:', error);
+        res.status(500).json({ message: 'Server error searching YouTube channels' });
+    }
+};
+
 module.exports = {
     getConnectedAccounts,
     connectPlatform,
-    disconnectPlatform
+    disconnectPlatform,
+    searchYouTubeChannel
 };

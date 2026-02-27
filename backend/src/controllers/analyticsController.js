@@ -47,12 +47,30 @@ const syncAnalytics = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // Mock analytics sync
-        const mockFollowers = Math.floor(Math.random() * 5000) + 10000;
+        let followerCount = 0;
+
+        if (platform.toLowerCase() === 'youtube') {
+            const youtubeService = require('../services/youtubeService');
+            const accountResult = await db.query(
+                'SELECT platform_user_id FROM connected_accounts WHERE user_id = $1 AND platform = $2',
+                [userId, 'youtube']
+            );
+
+            if (accountResult.rows.length === 0) {
+                return res.status(404).json({ message: 'No connected YouTube account found' });
+            }
+
+            const channelId = accountResult.rows[0].platform_user_id;
+            const channelDetails = await youtubeService.getChannelDetails(channelId);
+            followerCount = parseInt(channelDetails.subscriberCount, 10) || 0;
+        } else {
+            // Mock analytics sync for other platforms like Threads
+            followerCount = Math.floor(Math.random() * 5000) + 10000;
+        }
 
         await db.query(
             'INSERT INTO analytics_history (user_id, platform, follower_count) VALUES ($1, $2, $3)',
-            [userId, platform, mockFollowers]
+            [userId, platform.toLowerCase(), followerCount]
         );
 
         res.json({ message: `Successfully synced ${platform} analytics` });

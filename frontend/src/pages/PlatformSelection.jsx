@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Youtube, AtSign, Plus, CheckCircle2, ChevronRight, XCircle, RefreshCw } from 'lucide-react';
+import { Youtube, AtSign, Plus, CheckCircle2, ChevronRight, XCircle, RefreshCw, Search } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 
 function PlatformSelection() {
     const [connectedAccounts, setConnectedAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showThreadsModal, setShowThreadsModal] = useState(false);
+    const [showYoutubeModal, setShowYoutubeModal] = useState(false);
     const [threadsToken, setThreadsToken] = useState('');
+    const [youtubeSearchQuery, setYoutubeSearchQuery] = useState('');
+    const [youtubeSearchResults, setYoutubeSearchResults] = useState([]);
+    const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
     const [connecting, setConnecting] = useState(false);
     const navigate = useNavigate();
 
@@ -39,8 +43,10 @@ function PlatformSelection() {
             return;
         }
 
-        // Mock YouTube connection
-        await submitConnection('youtube', `mock_yt_token_${Date.now()}`, 'YouTube Creator', `yt_${Date.now()}`);
+        if (platform === 'youtube') {
+            setShowYoutubeModal(true);
+            return;
+        }
     };
 
     const submitConnection = async (platform, token, username, platform_user_id) => {
@@ -73,7 +79,10 @@ function PlatformSelection() {
             if (res.ok) {
                 await fetchAccounts();
                 setShowThreadsModal(false);
+                setShowYoutubeModal(false);
                 setThreadsToken('');
+                setYoutubeSearchQuery('');
+                setYoutubeSearchResults([]);
                 alert(`${platform} connected successfully!`);
             } else {
                 alert(data.message || 'Connection failed. Please check your token.');
@@ -90,6 +99,32 @@ function PlatformSelection() {
         e.preventDefault();
         if (!threadsToken || connecting) return;
         await submitConnection('threads', threadsToken, '@threads_user', `threads_${Date.now()}`);
+    };
+
+    const handleYoutubeSearch = async (e) => {
+        e.preventDefault();
+        if (!youtubeSearchQuery || isSearchingYoutube) return;
+
+        setIsSearchingYoutube(true);
+        try {
+            const res = await fetchWithAuth(`/platforms/youtube/search?query=${encodeURIComponent(youtubeSearchQuery)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setYoutubeSearchResults(data);
+            } else {
+                alert('Failed to search YouTube channels.');
+            }
+        } catch (err) {
+            console.error('YouTube search failed:', err);
+            alert('An error occurred during search.');
+        } finally {
+            setIsSearchingYoutube(false);
+        }
+    };
+
+    const handleYoutubeConnect = async (channel) => {
+        // Send channel.channelId as the token, controller handles verifying it
+        await submitConnection('youtube', channel.channelId, channel.title, channel.channelId);
     };
 
     const handleDisconnect = async (platform) => {
@@ -195,47 +230,115 @@ function PlatformSelection() {
                 })}
             </div>
 
-            {/* Threads Token Modal */}
+            {/* Threads Connect Modal */}
             {showThreadsModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                <AtSign className="text-white" size={24} /> Connect Threads
+                                <AtSign size={24} /> Connect Threads
                             </h3>
-                            <button onClick={() => setShowThreadsModal(false)} className="text-slate-400 hover:text-white">
+                            <button onClick={() => {
+                                setShowThreadsModal(false);
+                                setThreadsToken('');
+                            }} className="text-slate-400 hover:text-white transition-colors">
                                 <XCircle size={24} />
                             </button>
                         </div>
                         <form onSubmit={handleThreadsSubmit}>
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Long-Lived Access Token</label>
-                                <textarea
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-slate-400 mb-2">
+                                    Long-Lived Access Token
+                                </label>
+                                <input
+                                    type="text"
                                     value={threadsToken}
                                     onChange={(e) => setThreadsToken(e.target.value)}
                                     placeholder="Paste your Threads access token here..."
-                                    className="w-full h-32 bg-[#1a1a1a] border border-white/10 rounded-xl p-4 text-white text-sm outline-none focus:border-blue-500 transition-colors resize-none"
+                                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-white/30 transition-colors"
                                     required
                                 />
-                                <p className="mt-2 text-xs text-slate-500">
-                                    You can get this token from the Meta for Developers portal after setting up a Threads App.
-                                </p>
                             </div>
                             <button
                                 type="submit"
                                 disabled={connecting}
-                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                {connecting ? (
-                                    <>
-                                        <RefreshCw className="animate-spin" size={20} />
-                                        Verifying...
-                                    </>
-                                ) : (
-                                    'Verify & Connect Account'
-                                )}
+                                {connecting ? <><RefreshCw className="animate-spin" size={20} /> Connecting...</> : 'Connect Account'}
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* YouTube Channel Search Modal */}
+            {showYoutubeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <Youtube className="text-red-500" size={24} /> Connect YouTube Channel
+                            </h3>
+                            <button onClick={() => {
+                                setShowYoutubeModal(false);
+                                setYoutubeSearchQuery('');
+                                setYoutubeSearchResults([]);
+                            }} className="text-slate-400 hover:text-white">
+                                <XCircle size={24} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleYoutubeSearch} className="mb-6 flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                <input
+                                    type="text"
+                                    value={youtubeSearchQuery}
+                                    onChange={(e) => setYoutubeSearchQuery(e.target.value)}
+                                    placeholder="Search for your channel or paste a video link..."
+                                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-red-500 transition-colors"
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isSearchingYoutube}
+                                className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSearchingYoutube ? <RefreshCw className="animate-spin" size={20} /> : 'Search'}
+                            </button>
+                        </form>
+
+                        <div className="overflow-y-auto flex-1 pr-2 space-y-3">
+                            {youtubeSearchResults.length === 0 && !isSearchingYoutube && youtubeSearchQuery === '' && (
+                                <div className="text-center py-12 text-slate-500">
+                                    Search for your channel to get started.
+                                </div>
+                            )}
+
+                            {youtubeSearchResults.map((channel) => (
+                                <div key={channel.channelId} className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all">
+                                    <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-[#1a1a1a]">
+                                        {channel.thumbnailUrl ? (
+                                            <img src={channel.thumbnailUrl} alt={channel.title} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Youtube size={32} className="text-slate-600 mx-auto mt-4" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-white font-bold truncate">{channel.title}</h4>
+                                        <p className="text-slate-400 text-xs line-clamp-2 mt-1">{channel.description}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleYoutubeConnect(channel)}
+                                        disabled={connecting}
+                                        className="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                                    >
+                                        Connect
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

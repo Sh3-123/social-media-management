@@ -28,35 +28,67 @@ function PlatformDashboard() {
     const [activeTab, setActiveTab] = useState('POST'); // 'POST' or 'REPLY'
 
     useEffect(() => {
+        let isMounted = true;
+
         const loadDashboard = async () => {
             setLoading(true);
             try {
                 // Verify account connection
                 const accRes = await fetchWithAuth('/platforms/accounts');
-                if (accRes.ok) {
+                if (accRes.ok && isMounted) {
                     const accounts = await accRes.json();
                     const currentAcc = accounts.find(a => a.platform.toLowerCase() === platformId.toLowerCase());
                     if (!currentAcc) {
                         navigate('/dashboard/connect');
                         return;
                     }
-                    setAccount(currentAcc);
+                    if (isMounted) setAccount(currentAcc);
 
-                    // Fetch data
-                    await Promise.all([
-                        fetchPosts(activeTab),
-                        fetchAnalytics()
-                    ]);
+                    // Fetch existing data for immediate display
+                    if (isMounted) {
+                        await Promise.all([
+                            fetchPosts(activeTab),
+                            fetchAnalytics()
+                        ]);
+                    }
+
+                    // Perform background auto-sync
+                    if (isMounted) setSyncing(true);
+                    try {
+                        await Promise.all([
+                            fetchWithAuth('/posts/sync', { method: 'POST', body: JSON.stringify({ platform: platformId }) }),
+                            fetchWithAuth('/analytics/sync', { method: 'POST', body: JSON.stringify({ platform: platformId }) })
+                        ]);
+                        // Refetch after sync completes
+                        if (isMounted) {
+                            await Promise.all([fetchPosts(activeTab), fetchAnalytics()]);
+                        }
+                    } catch (err) {
+                        console.error('Auto sync failed:', err);
+                    } finally {
+                        if (isMounted) setSyncing(false);
+                    }
                 }
             } catch (err) {
                 console.error('Dashboard load failed:', err);
             } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         };
 
         loadDashboard();
-    }, [platformId, navigate, activeTab]);
+
+        return () => { isMounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [platformId, navigate]);
+
+    // Handle tab change without full reload
+    useEffect(() => {
+        if (!loading && account) {
+            fetchPosts(activeTab);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]);
 
     const fetchPosts = async (type) => {
         const res = await fetchWithAuth(`/posts?platform=${platformId}&type=${type}`);
@@ -71,21 +103,6 @@ function PlatformDashboard() {
         if (res.ok) {
             const data = await res.json();
             setAnalytics(data);
-        }
-    };
-
-    const handleSync = async () => {
-        setSyncing(true);
-        try {
-            await Promise.all([
-                fetchWithAuth('/posts/sync', { method: 'POST', body: JSON.stringify({ platform: platformId }) }),
-                fetchWithAuth('/analytics/sync', { method: 'POST', body: JSON.stringify({ platform: platformId }) })
-            ]);
-            await Promise.all([fetchPosts(activeTab), fetchAnalytics()]);
-        } catch (err) {
-            console.error('Sync failed:', err);
-        } finally {
-            setSyncing(false);
         }
     };
 
@@ -139,14 +156,11 @@ function PlatformDashboard() {
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    <button
-                        onClick={handleSync}
-                        disabled={syncing}
-                        className="px-4 py-2 bg-[#121212] text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-2 disabled:opacity-50"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-                        {syncing ? 'Syncing...' : 'Sync Data'}
-                    </button>
+                    {syncing && (
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-400 px-3 py-2 bg-white/5 rounded-lg border border-white/10">
+                            <RefreshCw className="w-4 h-4 animate-spin text-blue-500" /> Auto-syncing...
+                        </div>
+                    )}
                     <button className="px-4 py-2 bg-white text-black font-bold rounded-lg hover:bg-slate-200 transition-colors">
                         Post Content
                     </button>
@@ -157,7 +171,7 @@ function PlatformDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {[
                     {
-                        label: 'Followers',
+                        label: platformId === 'youtube' ? 'Subscribers' : 'Followers',
                         value: (analytics?.current?.follower_count ?? 0).toLocaleString(),
                         trend: growth >= 0 ? `+${growth}` : growth,
                         icon: Users
@@ -226,53 +240,85 @@ function PlatformDashboard() {
                         <div className="flex justify-between items-center mb-8">
                             <div className="flex items-center gap-6">
                                 <h3 className={`text-xl font-bold cursor-pointer transition-colors ${activeTab === 'POST' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`} onClick={() => setActiveTab('POST')}>
-                                    Threads
+                                    {platformId === 'youtube' ? 'Videos' : 'Threads'}
                                 </h3>
-                                <h3 className={`text-xl font-bold cursor-pointer transition-colors ${activeTab === 'REPLY' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`} onClick={() => setActiveTab('REPLY')}>
-                                    Replies
-                                </h3>
+                                {platformId !== 'youtube' && (
+                                    <h3 className={`text-xl font-bold cursor-pointer transition-colors ${activeTab === 'REPLY' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`} onClick={() => setActiveTab('REPLY')}>
+                                        Replies
+                                    </h3>
+                                )}
                             </div>
                             <Link to="/dashboard/posts" className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">View All</Link>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className={platformId === 'youtube' ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "space-y-4"}>
                             {posts.length === 0 ? (
-                                <div className="text-center py-12 bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
-                                    <p className="text-slate-500 mb-4">No {activeTab.toLowerCase()}s synced yet.</p>
-                                    <button onClick={handleSync} className="text-sm font-bold text-blue-500 border border-blue-500/30 px-4 py-2 rounded-lg hover:bg-blue-500/10 active:scale-95 transition-all">Sync Now</button>
+                                <div className="text-center py-12 bg-white/[0.02] border border-dashed border-white/10 rounded-2xl col-span-full">
+                                    <p className="text-slate-500 mb-4">No content synced yet.</p>
+                                    {syncing && <p className="text-sm text-blue-400 mt-2"><RefreshCw className="w-3 h-3 animate-spin inline mr-1" /> Syncing data, please wait...</p>}
                                 </div>
-                            ) : posts.map((post) => (
-                                <Link
-                                    key={post.id}
-                                    to={`/dashboard/post/${post.id}`}
-                                    className="flex gap-6 p-5 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/10 transition-all group"
-                                >
-                                    <div className="w-16 h-16 bg-[#1a1a1a] rounded-xl shrink-0 border border-white/5 flex items-center justify-center overflow-hidden">
-                                        {post.media_url ? (
-                                            <img src={post.media_url} alt="post" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <Icon className="text-slate-800" size={24} />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="flex flex-col">
-                                                {post.post_type === 'REPLY' && (
-                                                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Reply</span>
-                                                )}
-                                                <p className="text-white font-semibold text-lg line-clamp-1 group-hover:text-blue-400 transition-colors">{post.content || 'Untitled Post'}</p>
-                                            </div>
-                                            <span className="text-[10px] font-bold text-slate-500 whitespace-nowrap uppercase tracking-tighter ml-4">{new Date(post.published_at).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex gap-6">
-                                            <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><Heart size={14} className="text-red-500" /> {post.likes_count}</span>
-                                            {post.post_type === 'POST' && (
-                                                <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><MessageCircle size={14} className="text-blue-400" /> {post.comments_count}</span>
+                            ) : platformId === 'youtube' ? (
+                                posts.map((post) => (
+                                    <Link
+                                        key={post.id}
+                                        to={`/dashboard/post/${post.id}`}
+                                        className="flex flex-col rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/10 transition-all group overflow-hidden"
+                                    >
+                                        <div className="w-full aspect-video bg-[#1a1a1a] relative">
+                                            {post.media_url ? (
+                                                <img src={post.media_url} alt="thumbnail" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <Youtube className="text-slate-600" size={32} />
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-                                </Link>
-                            ))}
+                                        <div className="p-4 flex-1 flex flex-col justify-between">
+                                            <h4 className="text-white font-bold text-sm line-clamp-2 group-hover:text-red-400 transition-colors mb-2">{post.content || 'Untitled Video'}</h4>
+                                            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                                                <div className="flex gap-4">
+                                                    <span className="flex items-center gap-1"><Eye size={12} className="text-slate-400" /> {Number(post.views_count || 0).toLocaleString()}</span>
+                                                    <span className="flex items-center gap-1"><Heart size={12} className="text-red-500" /> {Number(post.likes_count || 0).toLocaleString()}</span>
+                                                </div>
+                                                <span>{new Date(post.published_at).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))
+                            ) : (
+                                posts.map((post) => (
+                                    <Link
+                                        key={post.id}
+                                        to={`/dashboard/post/${post.id}`}
+                                        className="flex gap-6 p-5 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/10 transition-all group"
+                                    >
+                                        <div className="w-16 h-16 bg-[#1a1a1a] rounded-xl shrink-0 border border-white/5 flex items-center justify-center overflow-hidden">
+                                            {post.media_url ? (
+                                                <img src={post.media_url} alt="post" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Icon className="text-slate-800" size={24} />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex flex-col">
+                                                    {post.post_type === 'REPLY' && (
+                                                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Reply</span>
+                                                    )}
+                                                    <p className="text-white font-semibold text-lg line-clamp-1 group-hover:text-blue-400 transition-colors">{post.content || 'Untitled Post'}</p>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-500 whitespace-nowrap uppercase tracking-tighter ml-4">{new Date(post.published_at).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="flex gap-6">
+                                                <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><Heart size={14} className="text-red-500" /> {post.likes_count}</span>
+                                                {post.post_type === 'POST' && (
+                                                    <span className="flex items-center gap-2 text-slate-400 text-xs font-bold"><MessageCircle size={14} className="text-blue-400" /> {post.comments_count}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

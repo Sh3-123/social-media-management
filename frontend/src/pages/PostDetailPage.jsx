@@ -86,8 +86,8 @@ function PostDetailPage() {
                             setPostSentimentLoading(false);
                         });
 
-                    if (data.platform === 'threads') {
-                        // Attempt to fetch existing replies
+                    if (data.platform === 'threads' || data.platform === 'youtube') {
+                        // Attempt to fetch existing replies (works for both threads and youtube posts now)
                         const repliesRes = await fetchWithAuth(`/posts/${id}/public-replies`);
                         if (repliesRes.ok) {
                             const fetchedReplies = await repliesRes.json();
@@ -138,6 +138,7 @@ function PostDetailPage() {
 
     const Icon = post.platform === 'threads' ? AtSign : Youtube;
     const platformColor = post.platform === 'threads' ? 'text-white' : 'text-red-500';
+    const isYouTube = post.platform === 'youtube';
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
@@ -150,7 +151,18 @@ function PostDetailPage() {
             </button>
 
             <div className="bg-[#121212] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-                {post.media_url && (
+                {isYouTube ? (
+                    <div className="w-full aspect-video border-b border-white/10">
+                        <iframe
+                            src={`https://www.youtube.com/embed/${post.platform_post_id}?autoplay=1`}
+                            title={post.content || "YouTube video player"}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full"
+                        ></iframe>
+                    </div>
+                ) : post.media_url && (
                     <div className="w-full h-96 overflow-hidden border-b border-white/10">
                         <img src={post.media_url} alt="Post content" className="w-full h-full object-cover" />
                     </div>
@@ -209,71 +221,69 @@ function PostDetailPage() {
             {/* Post Sentiment */}
             <div className="mt-8">
                 <SentimentCard
-                    title="Post Analysis"
+                    title={isYouTube ? "Video Content Emotion (Title & Description)" : "Post Analysis"}
                     sentimentData={postSentiment}
                     loading={postSentimentLoading}
                 />
             </div>
 
-            {/* Public Replies Section */}
-            {post.platform === 'threads' && (
-                <div className="mt-8 bg-[#121212] border border-white/10 rounded-3xl p-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                            <MessageCircle className="text-blue-400" /> Public Replies
-                        </h3>
-                        <button
-                            onClick={handleSyncReplies}
-                            disabled={syncingReplies}
-                            className="px-4 py-2 text-sm bg-white/5 text-white border border-white/10 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
-                        >
-                            {syncingReplies ? 'Syncing...' : 'Sync Replies'}
-                        </button>
-                    </div>
+            {/* Public Replies/Comments Section */}
+            <div className="mt-8 bg-[#121212] border border-white/10 rounded-3xl p-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <MessageCircle className="text-blue-400" /> {isYouTube ? "Video Comments" : "Public Replies"}
+                    </h3>
+                    <button
+                        onClick={handleSyncReplies}
+                        disabled={syncingReplies}
+                        className="px-4 py-2 text-sm bg-white/5 text-white border border-white/10 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                    >
+                        {syncingReplies ? 'Syncing...' : 'Sync Replies'}
+                    </button>
+                </div>
 
-                    <PublicRepliesSentiment
-                        repliesSentimentData={Object.values(repliesSentiment)}
-                        loading={repliesSentimentLoading}
-                    />
+                <PublicRepliesSentiment
+                    repliesSentimentData={Object.values(repliesSentiment)}
+                    loading={repliesSentimentLoading}
+                />
 
-                    <div className="space-y-4">
-                        {replies.length === 0 ? (
-                            <div className="text-center py-8 text-slate-500">
-                                No public replies found. Click sync to fetch.
-                            </div>
-                        ) : (
-                            replies.map((reply) => (
-                                <div key={reply.id} className="p-5 rounded-2xl border border-white/5 bg-white/[0.02]">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
-                                                {reply.platform_username?.[0]?.toUpperCase() || 'U'}
-                                            </div>
-                                            <span className="text-white font-bold">@{reply.platform_username || 'user'}</span>
+                <div className="space-y-4">
+                    {replies.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500">
+                            No {isYouTube ? 'comments' : 'public replies'} found. Click sync to fetch.
+                        </div>
+                    ) : (
+                        replies.map((reply) => (
+                            <div key={reply.id} className="p-5 rounded-2xl border border-white/5 bg-white/[0.02]">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
+                                            {reply.platform_username?.[0]?.toUpperCase() || 'U'}
                                         </div>
-                                        <div className="flex flex-col items-end">
-                                            <span className="text-[10px] text-slate-500 font-medium mb-1">
-                                                {new Date(reply.published_at).toLocaleString()}
-                                            </span>
-                                            {repliesSentiment[reply.id] && (
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${repliesSentiment[reply.id].sentiment === 'positive' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                        repliesSentiment[reply.id].sentiment === 'negative' ? 'bg-rose-500/10 text-rose-400' :
-                                                            'bg-slate-500/10 text-slate-400'
-                                                    }`}>
-                                                    {repliesSentiment[reply.id].emotion}
-                                                </span>
-                                            )}
-                                        </div>
+                                        <span className="text-white font-bold">@{reply.platform_username || 'user'}</span>
                                     </div>
-                                    <div className="text-slate-300 ml-10">
-                                        {reply.content}
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] text-slate-500 font-medium mb-1">
+                                            {new Date(reply.published_at).toLocaleString()}
+                                        </span>
+                                        {repliesSentiment[reply.id] && (
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${repliesSentiment[reply.id].sentiment === 'positive' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                repliesSentiment[reply.id].sentiment === 'negative' ? 'bg-rose-500/10 text-rose-400' :
+                                                    'bg-slate-500/10 text-slate-400'
+                                                }`}>
+                                                {repliesSentiment[reply.id].emotion}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
+                                <div className="text-slate-300 ml-10">
+                                    {reply.content}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
-            )}
+            </div>
 
             <div className="mt-8 flex justify-center">
                 <button
