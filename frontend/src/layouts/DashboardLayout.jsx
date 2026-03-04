@@ -7,6 +7,8 @@ import {
     PlusCircle, AtSign, Youtube
 } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
+import ThemeToggle from '../components/ThemeToggle';
+import Logo from '../components/Logo';
 
 function DashboardLayout() {
     const { user, logout } = useAuth();
@@ -47,7 +49,7 @@ function DashboardLayout() {
     };
 
     return (
-        <div className="flex h-screen bg-[#0a0a0a] overflow-hidden text-slate-100">
+        <div className="flex h-screen bg-slate-50 dark:bg-[#0a0a0a] overflow-hidden text-slate-900 dark:text-slate-100 transition-colors duration-200">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div
@@ -58,20 +60,18 @@ function DashboardLayout() {
 
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-30 w-64 bg-[#121212] border-r border-white/10 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-[#121212] border-r border-slate-200 dark:border-white/10 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
-                <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
+                <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200 dark:border-white/10 transition-colors duration-200">
                     <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 bg-white text-black font-bold rounded-lg flex items-center justify-center text-xl tracking-tighter">
-                            S
-                        </div>
-                        <span className="text-xl font-bold text-white tracking-tight">
-                            SocialSync
+                        <Logo className="h-8 w-8" />
+                        <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                            SyncSocial
                         </span>
                     </div>
                     <button
-                        className="lg:hidden text-slate-400 hover:text-white"
+                        className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                         onClick={() => setSidebarOpen(false)}
                     >
                         <X className="h-6 w-6" />
@@ -87,8 +87,8 @@ function DashboardLayout() {
                                 key={item.path}
                                 to={item.path}
                                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
-                                    ? 'bg-white/10 text-white'
-                                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                    ? 'bg-blue-50 text-blue-700 dark:bg-white/10 dark:text-white'
+                                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
                                     }`}
                             >
                                 <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-slate-500'}`} />
@@ -113,7 +113,7 @@ function DashboardLayout() {
                                             : 'text-slate-400 hover:bg-white/5 hover:text-white'
                                             }`}
                                     >
-                                        <Icon className={`h-5 w-5 mr-3 ${isActive ? (account.platform === 'youtube' ? 'text-red-500' : 'text-white') : 'text-slate-500'}`} />
+                                        <Icon className={`h-5 w-5 mr-3 ${isActive ? (account.platform === 'youtube' ? 'text-red-500' : 'text-slate-900 dark:text-white') : 'text-slate-500'}`} />
                                         {account.platform.charAt(0).toUpperCase() + account.platform.slice(1)}
                                     </Link>
                                 );
@@ -126,30 +126,31 @@ function DashboardLayout() {
             {/* Main Content Component */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Top Navbar */}
-                <header className="bg-[#121212] border-b border-white/10 h-16 flex items-center justify-between px-4 sm:px-6 z-10">
+                <header className="bg-white dark:bg-[#121212] border-b border-slate-200 dark:border-white/10 h-16 flex items-center justify-between px-4 sm:px-6 z-10 transition-colors duration-200">
                     <div className="flex items-center">
                         <button
-                            className="lg:hidden text-slate-400 hover:text-white mr-4"
+                            className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white mr-4"
                             onClick={() => setSidebarOpen(true)}
                         >
                             <Menu className="h-6 w-6" />
                         </button>
-                        <h1 className="text-xl font-semibold text-white hidden sm:block">
+                        <h1 className="text-xl font-semibold text-slate-900 dark:text-white hidden sm:block">
                             {navItems.find(i => i.path === location.pathname)?.label || 'Overview'}
                         </h1>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                        <button className="text-slate-400 hover:text-white relative">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                        <ThemeToggle />
+                        <button className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white relative transition-colors duration-200">
                             <Bell className="h-6 w-6" />
-                            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-blue-500 ring-2 ring-[#121212]" />
+                            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white dark:ring-[#121212]" />
                         </button>
-                        <div className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center font-bold shadow-md cursor-pointer">
+                        <div className="h-8 w-8 rounded-full bg-slate-200 text-slate-700 dark:bg-white dark:text-black flex items-center justify-center font-bold shadow-md cursor-pointer transition-colors duration-200">
                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="hidden sm:flex items-center text-sm font-medium text-slate-300 hover:text-white transition-colors bg-[#1a1a1a] px-3 py-1.5 rounded-md border border-white/10 hover:bg-[#252525]"
+                            className="hidden sm:flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors bg-slate-100 dark:bg-[#1a1a1a] px-3 py-1.5 rounded-md border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-[#252525]"
                         >
                             <LogOut className="h-4 w-4 mr-2" />
                             Logout
@@ -158,7 +159,7 @@ function DashboardLayout() {
                 </header>
 
                 {/* Main Area */}
-                <main className="flex-1 overflow-y-auto bg-[#0a0a0a] p-4 sm:p-6 lg:p-8">
+                <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 transition-colors duration-200">
                     <Outlet />
                 </main>
             </div>

@@ -9,6 +9,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import DashboardHome from './pages/DashboardHome';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import PlatformSelection from './pages/PlatformSelection';
 import PlatformDashboard from './pages/PlatformDashboard';
 import PostDetailPage from './pages/PostDetailPage';
@@ -17,26 +18,28 @@ import RecommendationPage from './pages/RecommendationPage';
 function App() {
     return (
         <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<LandingPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
-                    <Route path="/verify-email" element={<VerifyEmailPage />} />
-                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <ThemeProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/signup" element={<SignupPage />} />
+                        <Route path="/verify-email" element={<VerifyEmailPage />} />
+                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                    <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-                        <Route path="/dashboard" element={<DashboardHome />} />
-                        <Route path="/dashboard/connect" element={<PlatformSelection />} />
-                        <Route path="/dashboard/:platformId" element={<PlatformDashboard />} />
-                        <Route path="/dashboard/post/:id" element={<PostDetailPage />} />
-                        <Route path="/recommendation" element={<RecommendationPage />} />
-                    </Route>
+                        <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                            <Route path="/dashboard" element={<DashboardHome />} />
+                            <Route path="/dashboard/connect" element={<PlatformSelection />} />
+                            <Route path="/dashboard/:platformId" element={<PlatformDashboard />} />
+                            <Route path="/dashboard/post/:id" element={<PostDetailPage />} />
+                            <Route path="/recommendation" element={<RecommendationPage />} />
+                        </Route>
 
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </BrowserRouter>
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </BrowserRouter>
+            </ThemeProvider>
         </AuthProvider>
     );
 }

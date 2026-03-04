@@ -145,16 +145,16 @@ function PlatformSelection() {
             id: 'threads',
             name: 'Threads',
             icon: AtSign,
-            color: 'text-white',
-            bg: 'bg-[#121212]',
+            color: 'text-slate-900 dark:text-white',
+            bg: 'bg-white dark:bg-[#121212]',
             description: 'Connect your Threads account using a Long-Lived Access Token to manage posts and track analytics.'
         },
         {
             id: 'youtube',
             name: 'YouTube',
             icon: Youtube,
-            color: 'text-red-500',
-            bg: 'bg-[#121212]',
+            color: 'text-red-600 dark:text-red-500',
+            bg: 'bg-white dark:bg-[#121212]',
             description: 'Connect your YouTube channel to track performance, manage content and analyze audience growth.'
         }
     ];
@@ -166,8 +166,8 @@ function PlatformSelection() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
             <div className="mb-10">
-                <h1 className="text-3xl font-bold text-white mb-2">Connect Your Platforms</h1>
-                <p className="text-slate-400">Get started by linking your social media accounts to see your unified metrics.</p>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Connect Your Platforms</h1>
+                <p className="text-slate-600 dark:text-slate-400">Get started by linking your social media accounts to see your unified metrics.</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -176,10 +176,10 @@ function PlatformSelection() {
                     const Icon = platform.icon;
 
                     return (
-                        <div key={platform.id} className={`${platform.bg} border border-white/10 rounded-2xl p-6 transition-all hover:border-white/20 flex flex-col justify-between`}>
+                        <div key={platform.id} className={`${platform.bg} border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-none transition-all hover:border-slate-300 dark:hover:border-white/20 flex flex-col justify-between`}>
                             <div>
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className={`p-3 rounded-xl bg-white/5 ${platform.color}`}>
+                                    <div className={`p-3 rounded-xl bg-slate-100 dark:bg-white/5 ${platform.color}`}>
                                         <Icon size={32} />
                                     </div>
                                     {connected && (
@@ -189,8 +189,8 @@ function PlatformSelection() {
                                         </span>
                                     )}
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">{platform.name}</h3>
-                                <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{platform.name}</h3>
+                                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
                                     {platform.description}
                                 </p>
                             </div>
@@ -228,22 +228,22 @@ function PlatformSelection() {
 
             {/* Threads Connect Modal */}
             {showThreadsModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <AtSign size={24} /> Connect Threads
                             </h3>
                             <button onClick={() => {
                                 setShowThreadsModal(false);
                                 setThreadsToken('');
-                            }} className="text-slate-400 hover:text-white transition-colors">
+                            }} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors">
                                 <XCircle size={24} />
                             </button>
                         </div>
                         <form onSubmit={handleThreadsSubmit}>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-slate-400 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">
                                     Long-Lived Access Token
                                 </label>
                                 <input
@@ -251,14 +251,14 @@ function PlatformSelection() {
                                     value={threadsToken}
                                     onChange={(e) => setThreadsToken(e.target.value)}
                                     placeholder="Paste your Threads access token here..."
-                                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-white/30 transition-colors"
+                                    className="w-full bg-slate-50 dark:bg-[#1a1a1a] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white text-sm outline-none focus:border-blue-500 dark:focus:border-white/30 transition-colors"
                                     required
                                 />
                             </div>
                             <button
                                 type="submit"
                                 disabled={connecting}
-                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-blue-600 text-white dark:bg-white dark:text-black font-bold rounded-xl hover:bg-blue-700 dark:hover:bg-slate-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {connecting ? <><RefreshCw className="animate-spin" size={20} /> Connecting...</> : 'Connect Account'}
                             </button>
@@ -269,30 +269,30 @@ function PlatformSelection() {
 
             {/* YouTube Channel Search Modal */}
             {showYoutubeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Youtube className="text-red-500" size={24} /> Connect YouTube Channel
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Youtube className="text-red-600 dark:text-red-500" size={24} /> Connect YouTube Channel
                             </h3>
                             <button onClick={() => {
                                 setShowYoutubeModal(false);
                                 setYoutubeSearchQuery('');
                                 setYoutubeSearchResults([]);
-                            }} className="text-slate-400 hover:text-white">
+                            }} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white">
                                 <XCircle size={24} />
                             </button>
                         </div>
 
                         <form onSubmit={handleYoutubeSearch} className="mb-6 flex gap-2">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={20} />
                                 <input
                                     type="text"
                                     value={youtubeSearchQuery}
                                     onChange={(e) => setYoutubeSearchQuery(e.target.value)}
                                     placeholder="Search for your channel or paste a video link..."
-                                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm outline-none focus:border-red-500 transition-colors"
+                                    className="w-full bg-slate-50 dark:bg-[#1a1a1a] border border-slate-300 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-slate-900 dark:text-white text-sm outline-none focus:border-red-500 transition-colors"
                                     required
                                 />
                             </div>
@@ -313,22 +313,22 @@ function PlatformSelection() {
                             )}
 
                             {youtubeSearchResults.map((channel) => (
-                                <div key={channel.channelId} className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all">
-                                    <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-[#1a1a1a]">
+                                <div key={channel.channelId} className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
+                                    <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-slate-200 dark:bg-[#1a1a1a]">
                                         {channel.thumbnailUrl ? (
                                             <img src={channel.thumbnailUrl} alt={channel.title} className="w-full h-full object-cover" />
                                         ) : (
-                                            <Youtube size={32} className="text-slate-600 mx-auto mt-4" />
+                                            <Youtube size={32} className="text-slate-400 dark:text-slate-600 mx-auto mt-4" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-white font-bold truncate">{channel.title}</h4>
-                                        <p className="text-slate-400 text-xs line-clamp-2 mt-1">{channel.description}</p>
+                                        <h4 className="text-slate-900 dark:text-white font-bold truncate">{channel.title}</h4>
+                                        <p className="text-slate-600 dark:text-slate-400 text-xs line-clamp-2 mt-1">{channel.description}</p>
                                     </div>
                                     <button
                                         onClick={() => handleYoutubeConnect(channel)}
                                         disabled={connecting}
-                                        className="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                                        className="px-4 py-2 bg-blue-600 text-white dark:bg-white dark:text-black text-sm font-bold rounded-lg hover:bg-blue-700 dark:hover:bg-slate-200 transition-colors disabled:opacity-50"
                                     >
                                         Connect
                                     </button>

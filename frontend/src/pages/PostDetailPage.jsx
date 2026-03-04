@@ -144,15 +144,15 @@ function PostDetailPage() {
         <div className="max-w-4xl mx-auto py-8 px-4">
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 group"
+                className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-8 group"
             >
                 <ChevronLeft className="group-hover:-translate-x-1 transition-transform" />
                 <span className="font-bold text-sm uppercase tracking-widest">Back to Dashboard</span>
             </button>
 
-            <div className="bg-[#121212] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-xl dark:shadow-2xl">
                 {isYouTube ? (
-                    <div className="w-full aspect-video border-b border-white/10">
+                    <div className="w-full aspect-video border-b border-slate-200 dark:border-white/10">
                         <iframe
                             src={`https://www.youtube.com/embed/${post.platform_post_id}?autoplay=1`}
                             title={post.content || "YouTube video player"}
@@ -163,7 +163,7 @@ function PostDetailPage() {
                         ></iframe>
                     </div>
                 ) : post.media_url && (
-                    <div className="w-full h-96 overflow-hidden border-b border-white/10">
+                    <div className="w-full h-96 overflow-hidden border-b border-slate-200 dark:border-white/10">
                         <img src={post.media_url} alt="Post content" className="w-full h-full object-cover" />
                     </div>
                 )}
@@ -171,47 +171,47 @@ function PostDetailPage() {
                 <div className="p-8 md:p-12">
                     <div className="flex justify-between items-start mb-8">
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-2xl bg-white/5 ${platformColor}`}>
+                            <div className={`p-3 rounded-2xl bg-slate-100 dark:bg-white/5 ${platformColor === 'text-white' ? 'text-slate-900 dark:text-white' : platformColor}`}>
                                 <Icon size={32} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black text-white capitalize">{post.platform} Post</h2>
-                                <div className="flex items-center gap-2 text-slate-400 text-sm">
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white capitalize">{post.platform} Post</h2>
+                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
                                     <Calendar size={14} />
                                     <span>{new Date(post.published_at).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <button className="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white transition-colors">
+                            <button className="p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
                                 <Share2 size={20} />
                             </button>
-                            <button className="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white transition-colors">
+                            <button className="p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
                                 <ExternalLink size={20} />
                             </button>
                         </div>
                     </div>
 
                     <div className="mb-12">
-                        <p className="text-xl md:text-2xl text-white leading-relaxed font-medium whitespace-pre-wrap">
+                        <p className="text-xl md:text-2xl text-slate-800 dark:text-white leading-relaxed font-medium whitespace-pre-wrap">
                             {post.content}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 border-t border-white/5 pt-12">
-                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 text-center">
+                    <div className="grid grid-cols-3 gap-4 border-t border-slate-200 dark:border-white/5 pt-12">
+                        <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center">
                             <Heart className="mx-auto mb-3 text-red-500" size={24} />
-                            <p className="text-2xl font-black text-white">{post.likes_count.toLocaleString()}</p>
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">{post.likes_count.toLocaleString()}</p>
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Likes</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 text-center">
-                            <MessageCircle className="mx-auto mb-3 text-blue-400" size={24} />
-                            <p className="text-2xl font-black text-white">{post.comments_count.toLocaleString()}</p>
+                        <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center">
+                            <MessageCircle className="mx-auto mb-3 text-blue-500 dark:text-blue-400" size={24} />
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">{post.comments_count.toLocaleString()}</p>
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Comments</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 text-center">
-                            <Eye className="mx-auto mb-3 text-slate-400" size={24} />
-                            <p className="text-2xl font-black text-white">{post.views_count.toLocaleString()}</p>
+                        <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center">
+                            <Eye className="mx-auto mb-3 text-slate-500 dark:text-slate-400" size={24} />
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">{post.views_count.toLocaleString()}</p>
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Views</p>
                         </div>
                     </div>
@@ -228,11 +228,11 @@ function PostDetailPage() {
             </div>
 
             {/* Public Replies/Comments Section */}
-            <div className="mt-8 bg-[#121212] border border-white/10 rounded-3xl p-8">
+            <div className="mt-8 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none rounded-3xl p-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <MessageCircle className="text-blue-400" /> {isYouTube ? "Video Comments" : "Public Replies"}
-                        {syncingReplies && <span className="text-sm font-normal text-slate-400 ml-2">(Syncing...)</span>}
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <MessageCircle className="text-blue-500 dark:text-blue-400" /> {isYouTube ? "Video Comments" : "Public Replies"}
+                        {syncingReplies && <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">(Syncing...)</span>}
                     </h3>
                 </div>
 
@@ -248,29 +248,29 @@ function PostDetailPage() {
                         </div>
                     ) : (
                         replies.map((reply) => (
-                            <div key={reply.id} className="p-5 rounded-2xl border border-white/5 bg-white/[0.02]">
+                            <div key={reply.id} className="p-5 rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
                                             {reply.platform_username?.[0]?.toUpperCase() || 'U'}
                                         </div>
-                                        <span className="text-white font-bold">@{reply.platform_username || 'user'}</span>
+                                        <span className="text-slate-900 dark:text-white font-bold">@{reply.platform_username || 'user'}</span>
                                     </div>
                                     <div className="flex flex-col items-end">
                                         <span className="text-[10px] text-slate-500 font-medium mb-1">
                                             {new Date(reply.published_at).toLocaleString()}
                                         </span>
                                         {repliesSentiment[reply.id] && (
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${repliesSentiment[reply.id].sentiment === 'positive' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                repliesSentiment[reply.id].sentiment === 'negative' ? 'bg-rose-500/10 text-rose-400' :
-                                                    'bg-slate-500/10 text-slate-400'
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${repliesSentiment[reply.id].sentiment === 'positive' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                                                repliesSentiment[reply.id].sentiment === 'negative' ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400' :
+                                                    'bg-slate-200 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400'
                                                 }`}>
                                                 {repliesSentiment[reply.id].emotion}
                                             </span>
                                         )}
                                     </div>
                                 </div>
-                                <div className="text-slate-300 ml-10">
+                                <div className="text-slate-700 dark:text-slate-300 ml-10">
                                     {reply.content}
                                 </div>
                             </div>
@@ -282,7 +282,7 @@ function PostDetailPage() {
             <div className="mt-8 flex justify-center">
                 <button
                     onClick={() => navigate(-1)}
-                    className="px-8 py-3 bg-white text-black font-black rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
+                    className="px-8 py-3 bg-blue-600 text-white dark:bg-white dark:text-black font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-slate-200 transition-all active:scale-95"
                 >
                     Return to Feed
                 </button>

@@ -6,18 +6,18 @@ const SentimentCard = ({ sentimentData, loading, error, title = "Post Sentiment"
 
     if (loading) {
         return (
-            <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center min-h-[160px]">
+            <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center min-h-[160px] shadow-sm dark:shadow-none">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5" />
                 <ProgressBar className="min-h-0" />
-                <p className="text-slate-400 text-sm animate-pulse mt-4">Analyzing with AI...</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm animate-pulse mt-4">Analyzing with AI...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-[#121212] border border-red-500/10 rounded-2xl p-6 min-h-[160px] flex items-center justify-center">
-                <p className="text-red-400 text-sm bg-red-500/10 px-4 py-2 rounded-lg">{error}</p>
+            <div className="bg-white dark:bg-[#121212] border border-red-200 dark:border-red-500/10 rounded-2xl p-6 min-h-[160px] flex items-center justify-center shadow-sm dark:shadow-none">
+                <p className="text-red-500 dark:text-red-400 text-sm bg-red-50 dark:bg-red-500/10 px-4 py-2 rounded-lg">{error}</p>
             </div>
         );
     }
@@ -60,14 +60,14 @@ const SentimentCard = ({ sentimentData, loading, error, title = "Post Sentiment"
     const scorePct = Math.round(confidence * 100);
 
     return (
-        <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+        <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden shadow-sm dark:shadow-none">
             <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-50`} />
 
             <div className="relative z-10">
                 <div className="flex justify-between items-start mb-6">
                     <div>
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                            <Sparkles size={14} className="text-indigo-400" />
+                        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <Sparkles size={14} className="text-indigo-500 dark:text-indigo-400" />
                             {title}
                         </h3>
                         <div className="flex items-center gap-3 mt-2">
@@ -75,18 +75,18 @@ const SentimentCard = ({ sentimentData, loading, error, title = "Post Sentiment"
                                 <Icon size={24} />
                             </div>
                             <div>
-                                <h4 className="text-2xl font-black text-white capitalize">
+                                <h4 className="text-2xl font-black text-slate-900 dark:text-white capitalize">
                                     {sentiment}
                                 </h4>
                                 <p className="text-xs text-slate-500 font-medium">
-                                    Primary emotion: <span className="text-slate-300 capitalize">{emotion}</span>
+                                    Primary emotion: <span className="text-slate-700 dark:text-slate-300 capitalize">{emotion}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div className="text-right">
-                        <div className="text-3xl font-black text-white">{scorePct}%</div>
+                        <div className="text-3xl font-black text-slate-900 dark:text-white">{scorePct}%</div>
                         <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Confidence</div>
                     </div>
                 </div>
@@ -96,12 +96,12 @@ const SentimentCard = ({ sentimentData, loading, error, title = "Post Sentiment"
                     {breakdown?.filter(item => !['neutral', 'positive', 'negative'].includes(item.label.toLowerCase())).slice(0, 6).map((item, idx) => (
                         <div key={idx}>
                             <div className="flex justify-between text-xs mb-1">
-                                <span className="text-slate-300 capitalize font-medium">{item.label}</span>
-                                <span className="text-slate-400 font-bold">{Math.round(item.score * 100)}%</span>
+                                <span className="text-slate-700 dark:text-slate-300 capitalize font-medium">{item.label}</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-bold">{Math.round(item.score * 100)}%</span>
                             </div>
-                            <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-1.5 overflow-hidden">
                                 <div
-                                    className={`h-1.5 rounded-full ${idx === 0 ? config.barColor : 'bg-white/20'}`}
+                                    className={`h-1.5 rounded-full ${idx === 0 ? config.barColor : 'bg-slate-300 dark:bg-white/20'}`}
                                     style={{ width: `${item.score * 100}%` }}
                                 />
                             </div>

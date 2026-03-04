@@ -83,13 +83,13 @@ function DashboardHome() {
     ];
 
     return (
-        <div className="space-y-6 text-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-white/10">
+        <div className="space-y-6 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200 dark:border-white/10 transition-colors duration-200">
                 <div>
-                    <h2 className="text-2xl font-bold text-white">Welcome back, {user?.name}! 👋</h2>
-                    <p className="text-slate-400 text-sm mt-1">Here's what's happening with your accounts today.</p>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors duration-200">Welcome back, {user?.name}! 👋</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 transition-colors duration-200">Here's what's happening with your accounts today.</p>
                 </div>
-                <button className="mt-4 sm:mt-0 bg-white hover:bg-slate-200 text-black px-4 py-2 rounded-lg font-semibold shadow-sm transition-colors text-sm">
+                <button className="mt-4 sm:mt-0 bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:hover:bg-slate-200 dark:text-black px-4 py-2 rounded-lg font-semibold shadow-sm transition-colors text-sm">
                     Create New Post
                 </button>
             </div>
@@ -98,13 +98,13 @@ function DashboardHome() {
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
-                        <div key={index} className="bg-[#121212] rounded-xl shadow-sm border border-white/10 p-6 transform transition-transform hover:border-white/20">
+                        <div key={index} className="bg-white dark:bg-[#121212] rounded-xl shadow-sm border border-slate-200 dark:border-white/10 p-6 transform transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-400">{stat.label}</p>
-                                    <h3 className="text-2xl font-bold text-white mt-1">{stat.value}</h3>
+                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 transition-colors duration-200">{stat.label}</p>
+                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1 transition-colors duration-200">{stat.value}</h3>
                                 </div>
-                                <div className={`w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-300 border border-white/10`}>
+                                <div className={`w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition-colors duration-200`}>
                                     <Icon className="h-6 w-6" />
                                 </div>
                             </div>
@@ -118,8 +118,8 @@ function DashboardHome() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 pt-4">
-                <div className="bg-[#121212] rounded-xl shadow-sm border border-white/10 p-6 min-h-[400px]">
-                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <div className="bg-white dark:bg-[#121212] rounded-xl shadow-sm border border-slate-200 dark:border-white/10 p-6 min-h-[400px] transition-colors duration-200">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2 transition-colors duration-200">
                         <TrendingUp className="h-5 w-5 text-blue-500" />
                         Audience Growth Analytics
                     </h3>

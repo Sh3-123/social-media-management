@@ -22,13 +22,13 @@ const ProgressBar = ({ className = "min-h-[60vh]" }) => {
 
     return (
         <div className={`flex flex-col items-center justify-center ${className}`}>
-            <div className="w-64 h-2 bg-white/10 rounded-full overflow-hidden mb-4">
+            <div className="w-64 h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-4">
                 <div
-                    className="h-full bg-white transition-all duration-300 ease-out rounded-full"
+                    className="h-full bg-slate-900 dark:bg-white transition-all duration-300 ease-out rounded-full"
                     style={{ width: `${progress}%` }}
                 />
             </div>
-            <div className="text-white font-bold text-lg">
+            <div className="text-slate-900 dark:text-white font-bold text-lg">
                 {Math.round(progress)}%
             </div>
         </div>

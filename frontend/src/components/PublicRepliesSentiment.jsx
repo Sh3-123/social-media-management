@@ -45,13 +45,13 @@ const PublicRepliesSentiment = ({ repliesSentimentData, loading }) => {
         .slice(0, 6); // Take top 6 average emotions
 
     return (
-        <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 relative overflow-hidden mb-6">
+        <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden mb-6 shadow-sm dark:shadow-none">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5" />
 
             <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-6">
-                    <MessagesSquare size={18} className="text-blue-400" />
-                    <h3 className="text-base font-bold text-white">Aggregated Audience Sentiment</h3>
+                    <MessagesSquare size={18} className="text-blue-500 dark:text-blue-400" />
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">Aggregated Audience Sentiment</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -62,29 +62,29 @@ const PublicRepliesSentiment = ({ repliesSentimentData, loading }) => {
                         <div className="space-y-3">
                             <div>
                                 <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-emerald-400 font-medium">Positive</span>
-                                    <span className="text-slate-400">{posPct}%</span>
+                                    <span className="text-emerald-500 dark:text-emerald-400 font-medium">Positive</span>
+                                    <span className="text-slate-500 dark:text-slate-400">{posPct}%</span>
                                 </div>
-                                <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-                                    <div className="h-2 rounded-full bg-emerald-400" style={{ width: `${posPct}%` }} />
+                                <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+                                    <div className="h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" style={{ width: `${posPct}%` }} />
                                 </div>
                             </div>
                             <div>
                                 <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-slate-400 font-medium">Neutral</span>
-                                    <span className="text-slate-400">{neuPct}%</span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Neutral</span>
+                                    <span className="text-slate-500 dark:text-slate-400">{neuPct}%</span>
                                 </div>
-                                <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
+                                <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
                                     <div className="h-2 rounded-full bg-slate-400" style={{ width: `${neuPct}%` }} />
                                 </div>
                             </div>
                             <div>
                                 <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-rose-400 font-medium">Negative</span>
-                                    <span className="text-slate-400">{negPct}%</span>
+                                    <span className="text-rose-500 dark:text-rose-400 font-medium">Negative</span>
+                                    <span className="text-slate-500 dark:text-slate-400">{negPct}%</span>
                                 </div>
-                                <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-                                    <div className="h-2 rounded-full bg-rose-400" style={{ width: `${negPct}%` }} />
+                                <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+                                    <div className="h-2 rounded-full bg-rose-500 dark:bg-rose-400" style={{ width: `${negPct}%` }} />
                                 </div>
                             </div>
                         </div>
@@ -97,12 +97,12 @@ const PublicRepliesSentiment = ({ repliesSentimentData, loading }) => {
                             {avgEmotions.map((emotion, idx) => (
                                 <div key={idx}>
                                     <div className="flex justify-between text-xs mb-1">
-                                        <span className="text-slate-300 capitalize font-medium">{emotion.label}</span>
-                                        <span className="text-slate-400 font-bold">{Math.round(emotion.avgScore * 100)}%</span>
+                                        <span className="text-slate-700 dark:text-slate-300 capitalize font-medium">{emotion.label}</span>
+                                        <span className="text-slate-500 dark:text-slate-400 font-bold">{Math.round(emotion.avgScore * 100)}%</span>
                                     </div>
-                                    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-1.5 overflow-hidden">
                                         <div
-                                            className="h-1.5 rounded-full bg-blue-400"
+                                            className="h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"
                                             style={{ width: `${Math.max(emotion.avgScore * 100, 1)}%` }}
                                         />
                                     </div>
