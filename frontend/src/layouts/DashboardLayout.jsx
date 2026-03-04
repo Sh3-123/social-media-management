@@ -39,7 +39,6 @@ function DashboardLayout() {
         { icon: Home, label: 'Dashboard', path: '/dashboard' },
         { icon: PlusCircle, label: 'Connect Platforms', path: '/dashboard/connect' },
         { icon: MessageSquare, label: 'Content Generation', path: '/recommendation' },
-        { icon: BarChart2, label: 'Global Analytics', path: '/analytics' },
     ];
 
     const platformIcons = {
