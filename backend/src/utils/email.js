@@ -1,15 +1,15 @@
 const nodemailer = require('nodemailer');
 
-const SENDER_EMAIL = process.env.EMAIL_USER; // E.g. majorproject785@gmail.com
-
-// Create a Nodemailer transporter using SMTP
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Helper function to lazily create transporter
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+};
 
 const sendVerificationEmail = async (to, token) => {
   const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
@@ -18,7 +18,7 @@ const sendVerificationEmail = async (to, token) => {
     console.log(`Attempting to send verification email to: ${to}`);
 
     const mailOptions = {
-      from: `"SyncSocial" <${SENDER_EMAIL}>`,
+      from: `"SyncSocial" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: 'verify your SyncSocial account',
       html: `
@@ -46,7 +46,7 @@ const sendVerificationEmail = async (to, token) => {
             `
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await getTransporter().sendMail(mailOptions);
     console.log('Verification email sent successfully:', info.messageId);
     return true;
   } catch (error) {
@@ -63,7 +63,7 @@ const sendPasswordResetEmail = async (to, token) => {
     console.log(`Attempting to send password reset email to: ${to}`);
 
     const mailOptions = {
-      from: `"SyncSocial Support" <${SENDER_EMAIL}>`,
+      from: `"SyncSocial Support" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: 'Reset your SyncSocial Password',
       html: `
@@ -91,7 +91,7 @@ const sendPasswordResetEmail = async (to, token) => {
             `
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await getTransporter().sendMail(mailOptions);
     console.log('Password reset email sent successfully:', info.messageId);
     return true;
   } catch (error) {
