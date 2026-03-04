@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { fetchWithAuth } from '../utils/api';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import ProgressBar from '../components/ProgressBar';
 
 function VerifyEmailPage() {
-    const { token } = useParams();
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token');
     const [status, setStatus] = useState('verifying'); // verifying, success, error
     const [message, setMessage] = useState('');
+    const hasFetched = React.useRef(false);
 
     useEffect(() => {
         const verifyToken = async () => {
+            if (hasFetched.current) return;
+            hasFetched.current = true;
+
             try {
-                const res = await fetchWithAuth(`/auth/verify/${token}`, { method: 'POST' });
+                const res = await fetchWithAuth(`/auth/verify-email?token=${token}`, { method: 'GET' });
                 const data = await res.json();
 
                 if (!res.ok) {

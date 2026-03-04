@@ -8,8 +8,10 @@ const createTables = async () => {
       email VARCHAR(255) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
       is_verified BOOLEAN DEFAULT FALSE,
-      verification_token VARCHAR(255),
+      verification_token VARCHAR(512),
       token_expires_at TIMESTAMP,
+      reset_password_token VARCHAR(512),
+      reset_password_expires_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -99,6 +101,12 @@ const createTables = async () => {
     await db.query('ALTER TABLE posts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
     await db.query('ALTER TABLE posts ADD COLUMN IF NOT EXISTS parent_post_id VARCHAR(255)');
     await db.query('ALTER TABLE posts ADD COLUMN IF NOT EXISTS platform_username VARCHAR(255)');
+
+    // Auth migration
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(512)');
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires_at TIMESTAMP');
+    await db.query('ALTER TABLE users ALTER COLUMN verification_token TYPE VARCHAR(512)');
+    await db.query('ALTER TABLE users ALTER COLUMN reset_password_token TYPE VARCHAR(512)');
   } catch (err) {
     console.log('Migration subtle error (likely columns already exist):', err.message);
   }

@@ -9,8 +9,24 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [resendStatus, setResendStatus] = useState(''); // track resend attempts
     const { login } = useAuth();
     const navigate = useNavigate();
+
+    const handleResend = async () => {
+        setResendStatus('loading');
+        try {
+            const res = await fetchWithAuth('/auth/resend-verification', {
+                method: 'POST',
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            setResendStatus('success');
+        } catch (err) {
+            setResendStatus('error');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -60,8 +76,21 @@ function LoginPage() {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-[#121212] py-8 px-4 shadow-xl shadow-black/50 sm:rounded-2xl sm:px-10 border border-white/10">
                     {error && (
-                        <div className="mb-4 bg-red-900/20 text-red-400 p-3 rounded-lg text-sm border border-red-500/30">
-                            {error}
+                        <div className="mb-4 bg-red-900/20 text-red-400 p-3 rounded-lg text-sm border border-red-500/30 flex flex-col gap-2">
+                            <span>{error}</span>
+                            {error.toLowerCase().includes('verify') && (
+                                <button
+                                    type="button"
+                                    onClick={handleResend}
+                                    disabled={resendStatus === 'loading' || resendStatus === 'success'}
+                                    className="text-blue-400 hover:text-blue-300 underline text-left w-fit transition-colors disabled:opacity-50"
+                                >
+                                    {resendStatus === 'loading' ? 'Sending...' :
+                                        resendStatus === 'success' ? 'Verification email sent!' :
+                                            resendStatus === 'error' ? 'Failed to send. Try again.' :
+                                                'Resend verification email'}
+                                </button>
+                            )}
                         </div>
                     )}
                     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -96,6 +125,11 @@ function LoginPage() {
                                     className="pl-10 block w-full bg-[#1a1a1a] border border-white/10 text-white placeholder-slate-500 outline-none hover:border-white/20 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 py-3 rounded-lg text-sm transition-all"
                                     placeholder="••••••••"
                                 />
+                            </div>
+                            <div className="flex justify-end mt-1">
+                                <Link to="/forgot-password" className="text-xs text-blue-500 hover:text-blue-400 font-medium transition-colors">
+                                    Forgot password?
+                                </Link>
                             </div>
                         </div>
 

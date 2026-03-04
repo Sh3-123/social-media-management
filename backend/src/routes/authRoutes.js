@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { signup, verifyEmail, login, getMe } = require('../controllers/authController');
+const { signup, verifyEmail, resendVerification, login, getMe, forgotPassword, resetPassword } = require('../controllers/authController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
 // Auth routes
 router.post('/signup', signup);
-router.post('/verify/:token', verifyEmail);
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerification);
 router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Protected routes
 router.get('/me', verifyToken, getMe);

@@ -50,8 +50,9 @@ function SignupPage() {
                 throw new Error(errorMessage);
             }
 
-            setSuccess('Account created successfully! Redirecting to login...');
-            setTimeout(() => navigate('/login'), 4000);
+            setSuccess('Verification email sent. Please check your inbox.');
+            // Let them manually go to login or wait a bit
+            setTimeout(() => navigate('/login'), 5000);
         } catch (err) {
             setError(err.message);
         } finally {
